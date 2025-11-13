@@ -12,34 +12,47 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
-
-# Example schemas (replace with your own):
+from typing import Optional, List, Literal
 
 class User(BaseModel):
     """
     Users collection schema
     Collection name: "user" (lowercase of class name)
     """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    username: str = Field(..., description="Unique username")
+    name: Optional[str] = Field(None, description="Display name")
+    email: Optional[str] = Field(None, description="Email address")
+    selected_course_id: Optional[str] = Field(None, description="Current course ID")
+    xp: int = Field(0, ge=0, description="Total XP earned")
+    streak: int = Field(0, ge=0, description="Daily streak count")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class Course(BaseModel):
+    """Language course info"""
+    name: str = Field(..., description="Course name, e.g., Spanish")
+    code: str = Field(..., description="Language code, e.g., es")
+    base_language: str = Field("en", description="Base language code, e.g., en")
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Lesson(BaseModel):
+    """A lesson belongs to a course"""
+    course_id: str = Field(..., description="Course ID")
+    title: str = Field(...)
+    order: int = Field(..., ge=0)
+
+class Exercise(BaseModel):
+    """Exercises inside a lesson"""
+    lesson_id: str = Field(..., description="Lesson ID")
+    type: Literal["mcq", "translate"]
+    prompt: str
+    options: Optional[List[str]] = None
+    answer: str = Field(..., description="Correct answer")
+
+class Progress(BaseModel):
+    """User progress by lesson"""
+    user_id: str = Field(...)
+    lesson_id: str = Field(...)
+    completed: bool = False
+    correct_count: int = 0
+    total_count: int = 0
 
 # Note: The Flames database viewer will automatically:
 # 1. Read these schemas from GET /schema endpoint
